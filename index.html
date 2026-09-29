@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>冷知识小问答 · 随机刷新版</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2317786E'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle' fill='%23ffffff' font-family='Georgia,serif' font-weight='bold'%3E?%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --paper:#F6F3EA;
+    --ink:#24281F;
+    --ink-soft:#4C5144;
+    --line:#E0DAC8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    line-height:1.75;
+  }
+  main{max-width:880px;margin:0 auto;padding:0 24px 72px;}
+
+  /* ===== 页眉 ===== */
+  .masthead{padding:52px 0 6px;position:relative;}
+  .kicker{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;letter-spacing:.22em;color:var(--ink-soft);}
+  .kicker::before{content:"";width:34px;height:2px;background:#17786E;border-radius:2px;}
+  h1{font-family:"Noto Serif SC","Songti SC",serif;font-size:40px;font-weight:900;line-height:1.2;margin:16px 0 8px;letter-spacing:.01em;}
+  .date{font-size:14px;color:var(--ink-soft);font-weight:500;}
+  .lead{margin-top:16px;font-size:15px;color:var(--ink-soft);max-width:36em;}
+
+  /* ===== 顶部工具条 ===== */
+  .toolbar{display:flex;align-items:center;justify-content:flex-end;gap:14px;margin-top:24px;flex-wrap:wrap;}
+  .actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .tbtn{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:inherit;font-size:15px;font-weight:700;color:#17786E;
+    background:#FFFDF7;border:1px solid #17786E;border-radius:999px;padding:10px 20px;cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .tbtn:hover{background:#17786E;color:#fff;}
+  .tbtn.active{background:#17786E;color:#fff;}
+  .tbtn:active{transform:scale(.96);}
+  .refresh{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:inherit;font-size:15px;font-weight:700;color:#fff;
+    background:#17786E;border:0;border-radius:999px;padding:11px 22px;cursor:pointer;
+    box-shadow:0 2px 10px rgba(23,120,110,.25);transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .refresh:active{transform:scale(.96);}
+  .refresh .ic{display:inline-block;transition:transform .45s ease;}
+  .refresh.spin .ic{transform:rotate(360deg);}
+
+  /* ===== 分类快捷导航 ===== */
+  .nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;}
+  .nav a{
+    display:inline-flex;align-items:center;gap:7px;
+    font-size:13px;font-weight:700;color:var(--c);
+    border:1px solid var(--c);border-radius:999px;
+    background:color-mix(in srgb,var(--c) 8%,white);
+    padding:6px 14px;text-decoration:none;outline-offset:3px;
+    transition:background .15s ease, color .15s ease;
+  }
+  .nav a b{font-size:12px;opacity:.75;font-weight:700;}
+  .nav a.active{background:var(--c);color:#fff;}
+  .nav a.active b{opacity:.9;}
+
+  /* ===== 卡片 ===== */
+  .list{margin-top:26px;display:flex;flex-direction:column;gap:16px;}
+  .card{border:1px solid var(--line);border-radius:16px;background:#FFFDF7;overflow:hidden;box-shadow:0 1px 4px rgba(36,40,31,.05);}
+  .card-head{display:flex;align-items:baseline;gap:14px;padding:18px 22px;cursor:pointer;user-select:none;}
+  .num{font-family:"Noto Serif SC","Songti SC",serif;font-size:30px;font-weight:900;color:var(--c);flex:none;line-height:1;}
+  .card .tag{flex:none;font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--c);border:1px solid var(--c);border-radius:999px;padding:2px 11px;background:color-mix(in srgb,var(--c) 8%,white);}
+  .q{font-family:"Noto Serif SC","Songti SC",serif;font-size:20px;font-weight:700;line-height:1.5;color:var(--ink);flex:1;}
+  .chev{flex:none;font-size:20px;color:var(--c);font-weight:700;transform:rotate(90deg);transition:transform .25s ease;}
+  .card.open .chev{transform:rotate(-90deg);}
+  .card-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease;border-top:1px dashed var(--line);}
+  .card.open .card-body{grid-template-rows:1fr;}
+  .card-body-inner{overflow:hidden;min-height:0;}
+  .a{padding:18px 22px 6px;font-size:15.5px;line-height:1.95;color:var(--ink-soft);}
+  .meta{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 22px 18px;flex-wrap:wrap;}
+  .src{font-size:13px;color:var(--ink-soft);text-decoration:none;border-bottom:1px dotted #B8B2A0;}
+  .src:hover{color:var(--c);}
+  .copy{
+    font-family:inherit;font-size:13px;font-weight:700;color:var(--c);
+    background:transparent;border:1px solid var(--c);border-radius:999px;padding:5px 15px;cursor:pointer;
+  }
+  .copy:active{transform:scale(.95);}
+  .fav{
+    font-family:inherit;font-size:13px;font-weight:700;color:var(--c);
+    background:transparent;border:1px solid var(--c);border-radius:999px;padding:5px 15px;cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .fav.on{background:var(--c);color:#fff;}
+  .fav:active{transform:scale(.95);}
+  .meta-btns{display:flex;align-items:center;gap:8px;}
+  .favbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:26px;flex-wrap:wrap;}
+  .favbar[hidden]{display:none;}
+  .favbar-info{font-size:14px;color:var(--ink-soft);font-weight:500;}
+  .empty{
+    border:1px dashed var(--line);border-radius:16px;background:#FFFDF7;
+    padding:36px 24px;text-align:center;font-size:15px;color:var(--ink-soft);
+  }
+
+  footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);text-align:center;font-size:13px;color:var(--ink-soft);line-height:1.9;}
+  footer .status{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:12px;}
+
+  /* ===== 下拉刷新提示 ===== */
+  #pullTip{
+    position:fixed;top:0;left:0;right:0;z-index:99;
+    text-align:center;font-size:13px;font-weight:600;color:#17786E;
+    background:rgba(246,243,234,.95);padding:10px 0;
+    transform:translateY(-100%);transition:transform .18s ease;pointer-events:none;
+  }
+  #pullTip.show{transform:translateY(0);}
+
+  /* ===== Toast ===== */
+  #toast{
+    position:fixed;left:50%;bottom:34px;transform:translate(-50%,16px);z-index:99;
+    background:#24281F;color:#F6F3EA;font-size:13.5px;font-weight:500;
+    padding:10px 20px;border-radius:999px;opacity:0;transition:opacity .25s ease, transform .25s ease;pointer-events:none;
+    box-shadow:0 4px 16px rgba(0,0,0,.18);
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0);}
+
+  /* ===== 窄屏 ===== */
+  @media (max-width:640px){
+    .masthead{padding-top:36px;}
+    h1{font-size:29px;}
+    .actions{flex-wrap:nowrap;}
+    .tbtn{min-height:44px;padding:6px 13px;font-size:13px;gap:6px;}
+    .refresh{min-height:44px;padding:7px 15px;font-size:13px;gap:6px;}
+    .nav a{min-height:44px;display:inline-flex;align-items:center;padding:10px 16px;}
+    .card-head{flex-wrap:wrap;gap:10px;padding:16px 16px;}
+    .q{font-size:18px;flex-basis:calc(100% - 60px);}
+    .num{font-size:26px;}
+    .card .tag{font-size:12px;}
+    .a{padding:16px 16px 4px;font-size:15px;}
+    .meta{padding:4px 16px 16px;}
+    .copy{min-height:44px;padding:8px 18px;font-size:14px;}
+    .fav{min-height:44px;padding:8px 18px;font-size:14px;}
+    .src{display:inline-block;padding:10px 0;min-height:44px;}
+    .lead{font-size:14px;}
+  }
+</style>
+</head>
+<body>
+<main>
+    <div id="pullTip">↓ 下拉再好奇</div>
+
+  <header class="masthead">
+    <p class="kicker">冷知识小问答 · 随机刷新版</p>
+    <h1>今天，你好奇了吗？</h1>
+    <p class="date">2026 年 9 月 29 日 · 星期二</p>
+    <p class="lead">一个陪你长知识的冷知识小馆：8 大领域随机出题，看过不重样，喜欢就收藏。</p>
+  </header>
+
+  <div class="toolbar">
+    <div class="actions">
+      <button class="tbtn active" id="allBtn" type="button">全部</button>
+      <button class="tbtn" id="expandBtn" type="button">展开</button>
+      <button class="tbtn" id="favBtn" type="button">我的</button>
+      <button class="refresh" id="refreshBtn" type="button"><span class="ic">⟳</span>再好奇</button>
+    </div>
+  </div>
+
+  <nav class="nav" id="nav" aria-label="分类快捷导航"></nav>
+
+  <div class="favbar" id="favbar" hidden>
+    <span class="favbar-info" id="favbarInfo"></span>
+    <button class="tbtn" type="button" onclick="window.copyAllFav();">全部复制</button>
+  </div>
+
+  <section class="list" id="list" aria-live="polite"></section>
+
+  <footer>
+    <p class="status" id="count">正在加载题库…</p>
+    <p>点分类只看单领域，点「我的」看收藏，点「再好奇」随时换新题。</p>
+    <p>每条内容均经权威科普渠道核验后改写，来源见卡片内链接。</p>
+  </footer>
+</main>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ===== 题库（每条：q 问题 / a 答案 / s 来源名 / u 来源链接） ===== */
+  var BANK = {
+    "科学":[
+      {q:"为什么北极星好像永远不动？",a:"因为地球的自转轴几乎正好指向北极星。地球绕地轴自转，地轴的延长线直指北方天空的一点，北极星就恰好落在这根「轴」附近。地球转，其他星星都绕着这个点转圈，唯独北极星几乎待在原地，像钉在天上的一根轴心。所以在北半球，找北极星就能定方向：它永远指向正北方。古代航海靠它辨认方向，如今的星空摄影里，所有星星都在它周围画同心圆。几千年后地轴会慢慢摆动，北极星的位置将被别的星接替，但在这段日子里，它是最忠诚的「定北针」。",s:"维基百科·北极星",u:"https://zh.wikipedia.org/wiki/北极星"},
+      {q:"为什么天空是蓝色的？",a:"这是「光的散射」在作怪。阳光看似白色，其实是多种颜色光的混合，不同颜色的光波长不同。空气里的微小分子会散射阳光，对短波长的蓝紫光散射得特别厉害，这叫瑞利散射。蓝光被四面八方弹来弹去，布满整个天空，所以我们抬头看到的就是蓝色；红橙光波长长、散射弱，大多直接穿过去了。傍晚太阳斜射，阳光要走更长的路穿过大气，蓝光在中途几乎被散射光了，剩下的红橙光到达眼睛，天空就变成橘红色。天空不是「蓝的」，而是被蓝光「刷」蓝的。",s:"科普中国",u:"https://cloud.kepuchina.cn/h5/detail?id=7384624722989568000"},
+      {q:"为什么水滴落在荷叶上会滚成圆珠？",a:"因为荷叶天生「不沾水」。荷叶表面布满无数肉眼看不见的微小凸起，像一片纳米级的「小森林」，水滴落上去，接触面积被这些小凸起撑得极小，水根本摊不开，只能在表面张力的作用下缩成圆珠，轻轻一歪就滚走了，顺便把灰尘也带走——这就是著名的「荷叶效应」，也叫超疏水现象。科学家受它启发，做出了防水面料、自清洁玻璃和不挂雨滴的车窗。所以荷叶不是「懒」，而是长了一身微观的绒毛，让雨水自己识趣地滚蛋。",s:"维基百科·莲叶效应",u:"https://zh.wikipedia.org/wiki/莲叶效应"},
+      {q:"为什么焰火能放出五颜六色的光？",a:"秘密在金属盐。烟花里掺了不同的金属化合物，燃烧时金属原子受热，电子跳到高能量状态，落回原位时会把多余的能量以光的形式放出来——每种金属放出的光颜色不同：钠放黄光，锶放红光，钡放绿光，铜放蓝光，这就是「焰色反应」。所以烟花的配方表，其实就是一张调色盘：要红色加锶盐，要绿色加钡盐，要黄色加钠盐，再配上氧化剂和黏合剂，一颗烟花就能炸出满天花雨。烟花的美，是一场金属元素的化学秀。",s:"维基百科·焰色反应",u:"https://zh.wikipedia.org/wiki/焰色反应"},
+      {q:"为什么冰面那么滑？",a:"滑的不是冰本身，而是冰面上的「一层水膜」。人踩上去，鞋底对冰面产生压力，冰的熔点会稍稍降低，局部化成水；同时鞋底和冰面摩擦生热，也加速表面融化，于是冰面上总有一层薄薄的水。冰刀能滑、冰壶能走，靠的都是这层水做的润滑剂。冰面越光滑，水膜越均匀，滑起来越顺。还有个有趣的事实：冰能这么滑，恰恰因为它熔点低——像石英那样的晶体怎么压都不融化，永远滑不起来。所以不是冰天生顺滑，而是压力一碰，它就给自己「上油」。",s:"维基百科·冰",u:"https://zh.wikipedia.org/wiki/冰"},
+      {q:"为什么轮胎都是黑色的？",a:"天然橡胶本来是乳白色的，但纯橡胶不耐磨、怕晒、容易老化。轮胎里要加一种叫炭黑的填料——炭黑能大幅提升橡胶的强度和耐磨性，还能吸收紫外线、延缓老化。于是橡胶一掺炭黑，就成了黑色，这个配方从汽车诞生用到现在，成了行业标准。所以轮胎黑不是因为审美，而是「好用」逼出来的。偶尔能看到彩色轮胎，那是用了别的填料，但性能和寿命通常都不如黑轮胎。下次看到黑黢黢的轮胎，它其实是橡胶界的「碳纤维战甲」。",s:"维基百科·炭黑",u:"https://zh.wikipedia.org/wiki/炭黑"},
+      {q:"为什么海拔越高反而越冷？",a:"因为空气是被地面「烤热」的。太阳辐射穿过大气时，真正被加热的不是空气，而是地面：地面吸收阳光后升温，再把热量传给贴近地面的空气，所以越靠近地面空气越暖。海拔越高，离这个「暖气片」越远，空气又稀薄、存不住热量，气温就一路走低——平均每升高一千米，大约降六摄氏度。所以山顶终年积雪、山脚绿树成荫，不是山把冷气吸走了，而是热空气都堆在山脚不愿上来。登山时越走越冷，是你在远离地面的「暖气」。",s:"科普中国",u:"https://www.kepuchina.cn/wiki/science/201606/t20160614_189672.shtml"},
+      {q:"为什么夏天柏油路上会看到「水洼」？",a:"那不是水，是光在「变魔术」。夏天路面被晒得滚烫，贴近路面的空气受热膨胀、变稀，折射率随之变化；光线从冷空气钻进热空气层时发生弯折，把天空的影像「折」到路面上，看起来就像前方有一滩水，走近却消失了——这叫「下蜃景」，是海市蜃楼的一种。沙漠里旅人看到的「绿洲」，也是同一种把戏。越烫的路面，影像越清晰。所以开车时看到前面「一片水」，先别急着踩，那多半是太阳在路面画的假象。",s:"维基百科·蜃景",u:"https://zh.wikipedia.org/wiki/蜃景"}
+    ],
+    "历史":[
+      {q:"为什么古人见面要「作揖」而不是握手？",a:"作揖是中国人流传了三千多年的见面礼。拱手、抱拳、弯腰，双手抱在胸前微微前倾，表示敬意。古人选择作揖而不是握手，除了礼仪讲究，还有一个很实在的原因：拱手时双手互握、不接触对方，意味着「我手里没有武器，也没有敌意」，是一种安全的问候方式，尤其适合陌生人相见。作揖的姿势还有讲究：男子一般左手抱右手为吉拜，丧事则相反。后来生活节奏快了，握手、点头逐渐流行，但作揖没有消失——过年时互道「新年好」顺手作个揖，依然是很多人喜欢的年味。",s:"维基百科·拱手礼",u:"https://zh.wikipedia.org/wiki/拱手礼"},
+      {q:"为什么皇帝的诏令叫「圣旨」？",a:"「圣」是古人对皇帝和圣人的尊称，「旨」本义是「意思」，合起来就是「皇帝的意思」。但「圣旨」成为固定叫法，是明清两代的事。明朝起，皇帝的重要诏令有了统一形制：用丝绸织成，两端有银色龙纹轴头，开头一句固定的「奉天承运皇帝，诏曰」——意思是「承奉上天之意、顺应时运的皇帝，宣告如下」。圣旨的材质还分等级：五彩织锦给一品大员，素色的给低品官员。一张圣旨，既是命令文书，也是一件工艺考究的皇家织锦。",s:"维基百科·圣旨",u:"https://zh.wikipedia.org/wiki/圣旨"},
+      {q:"为什么古代银子叫「雪花银」？",a:"因为成色足的银锭，洁白如雪、光可鉴人。古代银子常用「成色」衡量纯度，含银量高、杂质少的银子呈银白色，光泽温润，像刚落下的雪花，所以人们叫它「雪花银」；成色差的银子发灰发黄，价格也大打折扣。古代钱庄收银子，要看成色、称重量，还要「听音」——好银子掷地有声、清脆悦耳，掺了铅锡的银子声音发闷。民间那句「三年清知府，十万雪花银」，讽刺的是贪官，但「雪花银」三个字，也侧面说明了好银子在当时就是硬通货和财富的象征。",s:"维基百科·白银",u:"https://zh.wikipedia.org/wiki/白银"},
+      {q:"为什么秦朝要修那么宽的「驰道」？",a:"秦始皇统一六国后，下令以首都咸阳为中心，向全国修了多条驰道，宽度要求达到五十步（约七十米），相当于双向八车道还要宽。修这么宽，一是军事需要：大军和粮草要快速调动，路宽才跑得开；二是政令畅通：皇帝的诏令要靠马车驿站迅速送达各地，路修好了，车马跑得快，中央的统治才能延伸到每个郡县。驰道中间是专供皇帝车驾的御道，两旁是普通行人的便道，规格森严。两千多年前就有了这种「国家级高速公路网」，秦始皇的基建手笔可见一斑。",s:"维基百科·秦直道",u:"https://zh.wikipedia.org/wiki/秦直道"},
+      {q:"为什么古代官员要「五更上朝」？",a:"因为上朝是古代官员每天最重要的事，而朝会开始得极早。明清时皇帝通常在卯时（早上五点到七点）升殿，住在城外的官员必须摸黑起床，赶在五更天（凌晨三点到五点）之前出门，所以叫「五更上朝」。冬天凌晨寒风刺骨，官员们提着灯笼挤在宫门外候朝，是常态。为了不迟到，朝官们想尽办法：有的提前住进宫门附近的会馆，有的靠固定叫醒的服务。唐代诗人白居易有诗「鼓动出新昌，鸡鸣赴建章」，写的就是官员闻鸡而起、赶去上朝的辛苦。当官不容易，光早起这一关就够喝一壶。",s:"维基百科·朝会",u:"https://zh.wikipedia.org/wiki/朝会"},
+      {q:"为什么皇帝的龙袍是黄色的？",a:"黄色成为皇家专属，跟五行学说有关。五行里中央属土，土为黄色，代表方位之中心和最高权力，所以从隋唐起，黄色逐渐成了皇帝的御用色，尤其是明黄。唐代明确规定士庶不得穿黄色衣，宋元明清一路沿袭，「黄袍加身」就成了登基称帝的代名词。有意思的是，更早的皇帝礼服其实以黑红为主——秦尚黑、汉尚赤，黄色是慢慢「升格」成御用色的。一件龙袍的颜色，背后藏着一整套关于方位和权力的宇宙观。",s:"维基百科·服饰",u:"https://zh.wikipedia.org/wiki/中国服饰"},
+      {q:"为什么古人打仗要「击鼓进军、鸣金收兵」？",a:"因为两种声音各司其职。鼓声低沉浑厚、传得远，能振奋士气，冲锋时战鼓一响，士兵跟着节奏往前冲；「金」指铜锣或钲，声音清脆尖利、穿透力强，收兵时鸣金，号令队伍撤退、停止追击，防止阵型散掉。战场上人喊马嘶、万箭齐发，只有高亢的金属声才压得住场，低沉鼓声才能传遍全军。所以才有「一鼓作气」「鸣金收兵」这些成语。一套鼓锣，就是古代战场的「交通信号灯」——鼓是油门，金是刹车。",s:"维基百科·钲",u:"https://zh.wikipedia.org/wiki/钲"},
+      {q:"为什么古人贬官叫「左迁」？",a:"这跟古代的尊卑方位有关。秦汉时期以右为尊，右丞相的位置高于左丞相，官职被降级，人往「左」挪，就叫「左迁」；升官则叫「右迁」。这个习惯一直延续到唐宋，李白写「闻王昌龄左迁龙标遥有此寄」，就是得知好友被贬去龙标，心疼又无奈。不过汉代以前也有过以左为尊的时候，比如「左贤王」比「右贤王」尊贵。左右到底谁尊，古代并非一成不变。一个「左」字，藏着古代官场的座次哲学。",s:"维基百科·左迁",u:"https://zh.wikipedia.org/wiki/左迁"}
+    ],
+    "自然":[
+      {q:"为什么云是白色的，乌云却是黑色的？",a:"云的颜色，取决于云的厚度和光线。一朵云由无数小水滴和小冰晶组成，它们会把照到身上的阳光向各个方向散射，阳光是白色的，散射出来自然也是白色，所以晴天我们看到朵朵白云。可当云层变厚，阳光要穿过层层水滴，被一次次反射、吸收，到云底时已透不过去多少光，云的下方看起来就灰暗发黑——这就是乌云。雷雨云又高又厚，底部光线几乎全被挡住，所以黑得像要压下来。其实乌云和白云是同一种东西，区别只在于：白的是看得见阳光，黑的是阳光被自己挡住了。",s:"维基百科·云",u:"https://zh.wikipedia.org/wiki/云"},
+      {q:"为什么盐碱地种不出庄稼？",a:"因为土壤里的盐分太多，把水「抢」走了。植物吸水靠根部的渗透压——根细胞里的浓度比土壤溶液高，水才会乖乖流进根里。可盐碱地里溶解的盐分浓度极高，土壤溶液的渗透压比根细胞还高，水不但进不去，甚至会被倒吸出来，植物根系严重缺水，自然长不起来。盐分本身对植物也有毒害，会破坏细胞、阻碍营养吸收。所以盐碱地上要么长着耐盐的碱蓬、柽柳，要么干脆一片荒芜。治理盐碱地，核心就是压盐排碱：灌水洗盐、深翻排水，把土里的盐分降下来，才能重新种出庄稼。",s:"科普中国",u:"https://cloud.kepuchina.cn/h5/detail?id=7438278850306940928"},
+      {q:"为什么瀑布底下总是有一个深潭？",a:"因为水流的势能全砸在了河床上。瀑布从高处倾泻而下，水流带着巨大的冲击力，日复一日地砸在落点，河床的岩石被冲刷、撞击、掏蚀，越陷越深，渐渐挖出一个凹坑——就是深潭。而且瀑布落水还会卷起大量泥沙和碎石，这些「天然砂轮」随着水流在坑底旋转打磨，掏蚀效果加倍。深潭形成后，落水砸进潭里，冲击力被水缓冲，反而减慢了继续下切的速度，所以很多瀑布的潭都稳定在某个深度。看瀑布时别光顾着看水，脚下那个碧绿的深潭，其实是水流几万年凿出来的杰作。",s:"维基百科·瀑布",u:"https://zh.wikipedia.org/wiki/瀑布"},
+      {q:"为什么有的沙丘会「唱歌」？",a:"这是著名的「鸣沙」现象。在特定的沙漠地带，沙粒大小均匀、颗粒圆润，表面还有一层极薄的「外壳」。风吹动沙层、或人从沙丘上滑下时，表层沙粒和下层沙粒剧烈摩擦振动，整片沙层像共鸣箱一样把声音放大，发出嗡嗡、低沉甚至像管风琴一样的声音，能持续几分钟，数公里外都听得见。不是所有沙子都会唱：颗粒太杂、太湿都不行，只有干燥、均匀、光滑的沙子才具备歌喉。我国敦煌的鸣沙山、宁夏的沙坡头，都是著名的会唱歌的沙丘。",s:"科普中国",u:"https://cloud.kepuchina.cn/newSearch/imgText?id=7500966346331717632"},
+      {q:"为什么南北极会有极昼和极夜？",a:"因为地球是「歪着」转的。地球的自转轴相对公转轨道面倾斜约 23.5 度，这个倾斜让太阳光在一年里照射南北极的范围不断变化。夏天，太阳直射北半球，整个北极圈内连续几个月见不到日落，叫极昼；同一时间南极圈内却整日不见太阳，叫极夜。半年后地球转到轨道另一侧，情况刚好反过来。所以两极地区一年只有一次日出日落——极昼极夜各自持续约半年。在极地科考站，人们会经历一整个夏天不拉窗帘的日子，也有一整个冬天不见太阳、全靠灯光和维生素 D 撑着的时光。地球歪一歪，极地就有了黑白半年的奇观。",s:"维基百科·极昼",u:"https://zh.wikipedia.org/wiki/极昼"},
+      {q:"为什么雷雨前总是又闷又热？",a:"因为雷雨云是「热空气顶出来的」。夏天午后地面被晒得滚烫，大量热空气快速上升，越升越高，水汽在高空凝结成庞大的积雨云。云里的空气上升时，把地面的热「锁」在低空，湿度又大，汗蒸发不出去，人就觉得又闷又热——闷热其实是雷雨的前奏，说明大气正在「憋大招」。等积雨云攒够能量，一场大雨倾盆而下，把闷热带走，气温立刻凉爽。所以老人说「闷热必有雷雨」，是有道理的：雷雨前，空气先把热全存着，再用一场雨一次性还给你。",s:"维基百科·积雨云",u:"https://zh.wikipedia.org/wiki/积雨云"},
+      {q:"为什么沙漠昼夜温差那么大？",a:"因为沙漠里「存不住热」。沙子的比热容很小：白天太阳一晒，地表温度能冲到五六十摄氏度；可沙子导热性差，热量只留在表层。夜里太阳一落，地面很快把白天攒的热辐射回太空，加上沙漠空气干燥、云量极少，没有「被子」锁温，气温就直线下跌，一夜之间能降几十摄氏度。相比之下，海边有水和湿润空气当「保温层」，昼夜温差就小得多。沙漠的热来得快、去得也快，所以去沙漠要记住：白天防中暑，夜里防着凉。",s:"维基百科·沙漠气候",u:"https://zh.wikipedia.org/wiki/沙漠气候"},
+      {q:"为什么雪花都是六角形？",a:"这是水分子「规定」好的。水结成冰晶时，分子会按特定角度彼此连接，这个角度让冰晶在生长时自然呈现出六边形的对称结构。温度、湿度不同，冰晶六个角长得快慢不一，于是演化出针状、片状、柱状、树枝状等各种形态，但万变不离其宗——始终保持着六角对称。所以放大镜下每片雪花都不一样，却都长着同一个「六角家族」的脸。雪花六角不是巧合，而是分子世界秩序之美：自然界最浪漫的图案，往往来自最严格的物理规则。",s:"维基百科·雪",u:"https://zh.wikipedia.org/wiki/雪"}
+    ],
+    "动物":[
+      {q:"为什么长颈鹿的脖子那么长？",a:"这是「够得着」的胜利。长颈鹿的祖先脖子并不长，但在干旱的非洲草原，低处的草在旱季常常枯死，能吃到高处树叶的个体活得更好、留下更多后代。脖子越长，越够得到别人够不着的食物，优势越大——自然选择一代代「拔高」了它们的脖子，最终长成今天两三米长的颈子。长颈鹿的脖子虽然长，但颈椎骨只有七节，和人类一样，只是每节都特别长。它还为此进化出强大的心脏和特殊的血压调节系统，低头喝水不头晕，抬头也不爆血管。长脖子不是天生的浪漫，而是一份「吃饭靠身高」的生存答卷。",s:"维基百科·长颈鹿",u:"https://zh.wikipedia.org/wiki/长颈鹿"},
+      {q:"为什么猫头鹰的脸是圆圆的？",a:"因为那张圆脸是它的「雷达」。猫头鹰是夜行猛禽，多在黑暗里捕猎，眼睛虽然大，但夜间光线弱，主要还得靠听力定位。它那圆圆的脸，由一圈圈特殊羽毛组成「面盘」，像一对天然的「卫星锅盖」：能把四面八方传来的细微声音反射、汇集到耳朵里，让猫头鹰精准判断猎物在哪个方位、多远。而且猫头鹰两只耳朵位置一高一低，声音到达两耳的时间差，帮它算出猎物高度。所以圆脸不是卖萌，是猫头鹰吃饭的家伙——脸越圆，耳朵越灵，夜里抓老鼠越准。",s:"维基百科·鸮形目",u:"https://zh.wikipedia.org/wiki/鸮形目"},
+      {q:"为什么猪爱在泥里打滚？",a:"因为猪其实很怕热，而它「不会出汗」。猪的汗腺非常少，几乎不具备蒸发散热的能力，天热时体温降不下来。泥巴里水分多，猪滚一身泥，水分慢慢蒸发，带走身体的热量，等于给自己抹了一层「天然空调」；泥浆晒干后还能像防晒霜一样挡住紫外线，顺便把寄生虫和蚊虫糊住。所以猪打滚不是不爱干净，而是没有更好的散热办法。它甚至会特意挑湿润的泥坑，滚完还要拱一拱，把泥巴抹匀。猪的「脏」，其实是它在高温下的生存智慧。",s:"维基百科·家猪",u:"https://zh.wikipedia.org/wiki/家猪"},
+      {q:"为什么企鹅走路摇摇晃晃？",a:"因为企鹅的身体结构「不适合走路」。它的腿很短，长在身体最后方，重心高高在上，双脚一前一后迈步时，身体像钟摆一样左右晃动，看起来特别笨拙。但科学家发现，这种摇摆恰恰是企鹅最省力的走法：每一次左右摇摆，都把一部分动能储存起来、再转化成前进的动力，比挺直身子走反而省能量。在冰面上，摇摇晃晃的步态还能帮助它们保持平衡、不容易滑倒。所以别笑话企鹅走路晃，那是它在南极冰原上进化出来的「节能步态」。",s:"维基百科·企鹅",u:"https://zh.wikipedia.org/wiki/企鹅"},
+      {q:"为什么鸭子的脚泡在冰水里不怕冷？",a:"因为鸭子脚上有套「逆流热交换系统」。鸭子的脚掌几乎没有羽毛，直接暴露在冰水里，但它脚里的血管长得很巧妙：从心脏流出来的热动脉血，和从脚掌流回去的冷静脉血，在腿里紧紧挨着、方向相反。热的动脉血一路把热量传给冷静脉血，热量还没到脚就「折返」回身体；流到脚掌的动脉血已接近冰水温度，流回身体的静脉血又把热量带回去。这样一来，鸭子既不怕脚冷，又不浪费体温，脚掌虽凉，身体核心始终暖暖的。冬天能在冰面上站一整天，靠的就是这条聪明的「保暖管线」。",s:"维基百科·鸭",u:"https://zh.wikipedia.org/wiki/鸭"},
+      {q:"为什么蜗牛爬过的地方亮晶晶？",a:"那是它分泌的「黏液公路」。蜗牛腹部长着足腺，会分泌大量黏液铺在身下，减小摩擦，保护柔软的腹足不被粗糙地面划伤；黏液还能锁住水分，防止身体被晒干。蜗牛就靠在这条湿滑的「公路」上蠕动前行，所以爬过的地方留下一道亮晶晶的痕迹。这条黏液路还有妙用：能顺着原路找回自己的窝，也能让蚂蚁等小虫知难而退。天热水分蒸发，就变成一道白色的印子。蜗牛走得慢，但人家自带润滑系统，一路走一路铺路，从不担心「路难走」。",s:"维基百科·蜗牛",u:"https://zh.wikipedia.org/wiki/蜗牛"},
+      {q:"为什么蝙蝠倒挂着睡觉？",a:"因为蝙蝠的腿「站不起来」。蝙蝠的翅膀由前肢演化而来，后腿又细又弱，几乎撑不起身体，在地上只能爬，飞起来反而利索；而它的脚爪结构特殊，能像钩子一样牢牢抓住树枝、岩壁，倒挂时几乎不费力气。倒挂还有实际好处：居高临下，遇到危险松开爪子就能直接滑翔起飞，比先爬高再起飞快得多。所以倒挂不是蝙蝠在凹造型，而是它最省力、最安全的「待机姿势」。白天挂成一排睡觉，傍晚一松爪，扑棱棱就飞进夜色里。",s:"维基百科·蝙蝠",u:"https://zh.wikipedia.org/wiki/蝙蝠"},
+      {q:"为什么啄木鸟天天啄树不头疼？",a:"因为它的头是「减震器」套装。啄木鸟啄树时速度可达每小时二十多公里，冲击力很大，但它有一整套缓冲设计：头骨坚硬，内部还有海绵状结构，能吸收震动；舌头又长又软，绕过头骨缠住脑腔，像安全带一样固定大脑；啄木的瞬间还会闭眼，防止眼球被震伤。这套结构让它每天啄树上千次也安然无恙。科学家研究啄木鸟的头骨，还想模仿它设计更耐撞的头盔和飞行器。不是不疼，是人家天生自带安全气囊。",s:"维基百科·啄木鸟",u:"https://zh.wikipedia.org/wiki/啄木鸟"}
+    ],
+    "人体":[
+      {q:"为什么人一紧张，手心就出汗？",a:"因为紧张触发了身体的「警报系统」。当我们感到紧张、害怕、兴奋时，大脑的交感神经会立刻进入「战斗或逃跑」状态：心跳加速、血压升高、肌肉绷紧，同时汗腺也开始分泌。手心、脚心这些部位的汗腺对交感神经特别敏感，一点点紧张就会先出汗，所以考试前、上台演讲前，手心总是湿漉漉的。这种反应其实是祖先留给我们的：远古时遇到猛兽，手心出汗能增加抓握力，方便逃跑或搏斗。到了现代，猛兽没了，但面试、表白、答辩照样触发这套程序。手心出汗，是身体在替你紧张。",s:"维基百科·交感神经系统",u:"https://zh.wikipedia.org/wiki/交感神经系统"},
+      {q:"为什么感冒时吃什么都没味道？",a:"因为味觉有一半是「闻」出来的。舌头上的味蕾只能尝出酸、甜、苦、咸、鲜五种基本味道，而食物丰富的香气，要靠鼻子里的嗅觉细胞来识别。感冒时鼻黏膜充血肿胀，鼻孔堵住，气味分子进不了鼻子，嗅觉失灵，于是味道立刻减半——吃什么都像嚼蜡。这也是为什么捏住鼻子吃东西，土豆和苹果几乎分不出区别。所以感冒时觉得饭不香，不是厨艺退步，而是鼻子罢工，连累了舌头。等鼻子通了，熟悉的味道就全回来了。下次感冒，试试捏住鼻子吃一口最爱的东西，你会发现「香」真的有一半是闻出来的。",s:"维基百科·嗅觉",u:"https://zh.wikipedia.org/wiki/嗅觉"},
+      {q:"为什么人睡觉时会流口水？",a:"因为睡着了，嘴巴的「闸门」松了。人在睡眠时全身肌肉放松，负责闭嘴的咬肌和口轮匝肌也跟着松懈，如果睡姿是仰面或侧卧、再赶上鼻子不通气不得不张嘴呼吸，口水就容易顺着嘴角流出来。另外，白天我们不断吞咽口水，睡着了吞咽频率大幅下降，唾液积在嘴里，满则溢。所以流口水是正常的生理现象，尤其是白天太累、睡得特别沉的时候更容易发生。偶尔流一次不必担心；但要是每天醒来枕头都湿一大片，还伴有口臭、牙疼，就可能是牙齿或口腔问题，建议看看牙医。",s:"维基百科·唾液",u:"https://zh.wikipedia.org/wiki/唾液"},
+      {q:"为什么人特别怕痒？",a:"怕痒其实是一道「防御警报」。科学家发现，怕痒最敏感的部位是腋下、腰侧、脚心——这些地方皮肤薄、神经密，而且是身体最容易被攻击的软肋。轻挠这些部位时，大脑会把它当成「有东西在偷袭」，自动产生躲闪、缩身、笑出声的反应；笑是一种信号，提醒同伴「我这儿受攻击了，快停下」。所以自己挠自己通常不痒：因为大脑已经知道「这是我的手，没有危险」，警报提前解除。怕痒还有社交功能，朋友间互相挠痒嬉闹，能增进亲密感。真正怕痒的人被碰一下就会跳起来，那是身体在替他说：这是我的软肋，别碰。",s:"维基百科·痒",u:"https://zh.wikipedia.org/wiki/痒"},
+      {q:"为什么运动后第二天浑身酸痛？",a:"这叫「延迟性肌肉酸痛」，一般出现在运动后 24 到 72 小时。以前人们怪罪乳酸，但现在研究认为，主因是肌肉纤维在做不习惯的高强度运动时发生了细微损伤，引发轻微炎症，修复过程中产生酸痛感——这其实是肌肉在变强的信号：身体会多长一些肌纤维，下次同样的运动就没那么疼了。缓解的办法是：运动后充分拉伸、适当活动、补充蛋白质和水分，让身体加速修复；疼得厉害可以用热敷或泡沫轴放松。注意，如果运动时立刻剧痛、动不了，那可能是拉伤了，要休息就医。酸痛是成长，剧痛是受伤，两者要分清。",s:"维基百科·延迟性肌肉酸痛",u:"https://zh.wikipedia.org/wiki/延迟性肌肉酸痛"},
+      {q:"为什么腿会抽筋？",a:"抽筋是肌肉「不听话」地突然收缩。最常见的原因：剧烈运动后肌肉疲劳、乳酸堆积；出汗太多导致钙、镁、钾等电解质流失；夜里被子压脚、血液循环不畅；还有受凉——温度骤降会让肌肉兴奋性升高。抽筋时肌肉持续紧绷，又疼又硬，马上反向拉伸能缓解：小腿抽筋就把脚尖往膝盖方向扳，保持十几秒。预防的办法：运动前充分热身、及时补水补盐、睡前拉伸、注意腿部保暖。偶尔抽一次是身体提醒你「累过头了」，频繁抽筋就要去查查电解质和血管了。",s:"维基百科·肌肉痉挛",u:"https://zh.wikipedia.org/wiki/肌肉痉挛"},
+      {q:"为什么打喷嚏时眼睛会闭上？",a:"这是身体在「紧急制动」。喷嚏是鼻腔受到刺激后引发的强烈反射：横膈膜猛地收缩，胸腔压力骤增，气流以极快的速度冲出鼻腔，顺便带出飞沫和异物。为了防止这股冲击波伤到眼睛，大脑会在喷嚏瞬间自动下令闭眼——这是一种本能的保护反射，几乎不受意志控制。顺带一提，想打喷嚏时硬憋着不闭眼，不仅难受，还可能让压力冲击鼓膜。所以打喷嚏闭眼不是巧合，是身体在给最脆弱的器官「拉安全闸」。",s:"维基百科·喷嚏反射",u:"https://zh.wikipedia.org/wiki/喷嚏"},
+      {q:"为什么早上醒来容易口臭？",a:"因为口腔「加班」了一整夜。睡觉时唾液分泌大幅减少，口腔变得干燥，而唾液本来有抑菌和冲刷的作用；细菌趁夜深人静大量繁殖，分解食物残渣、脱落细胞，产生含硫的臭味气体，这就是晨起口臭的主要来源。刷牙能缓解，是因为清掉了细菌的食物来源。想改善：睡前认真刷牙、用牙线，再刷一刷舌苔，别带着食物残渣入睡；早上醒来先喝口水，等唾液重新上岗，气味就会慢慢散去。晨起口臭人人都有，重在睡前功夫。",s:"维基百科·口臭",u:"https://zh.wikipedia.org/wiki/口臭"}
+    ],
+    "食物":[
+      {q:"为什么煮饺子要「点三次水」？",a:"为了皮和馅一起熟。饺子皮薄馅厚，如果一直用大火猛煮，水剧烈沸腾，皮很快熟了，可里面的肉馅还没熟透，皮还可能被沸水冲破。点凉水，是让锅里的水温瞬间降下来，沸腾暂停，热气慢慢往馅里渗透，等水再开，再点一次，这样皮和馅的进度就拉平了。反复三次，饺子皮筋道、馅鲜嫩，还不容易破。这是老一辈传下来的经验：水开点水、水开再点，三开三点，饺子准好。同样道理也适用于煮汤圆。所以那三碗凉水，不是给锅降温，是给馅争取时间。",s:"维基百科·饺子",u:"https://zh.wikipedia.org/wiki/饺子"},
+      {q:"为什么切开的苹果会变黄褐色？",a:"这是苹果在「氧化」。苹果果肉里含有一种叫多酚氧化酶的物质，平时被细胞膜关着，碰不到氧气。一旦苹果被切开，细胞破裂，多酚氧化酶跑出来，和空气中的氧气相遇，把果肉里的多酚类物质氧化成褐色物质——这个过程就叫「酶促褐变」。想让苹果不变色，办法都围绕「阻隔氧气」或「破坏酶」：泡在淡盐水里，盐能抑制酶的活性；挤点柠檬汁，柠檬酸也能给酶捣乱；或者把切好的苹果泡进凉白开里，隔绝空气。所以苹果变黄不是坏了，只是它受不了「见光就脸红」。",s:"科普中国",u:"https://cloud.kepuchina.cn/newSearch/imgText?id=7502127838833889280"},
+      {q:"为什么酒越陈越香？",a:"因为酒在坛子里「悄悄修炼」。新酿的酒里含有醇、醛、酸等多种物质，味道冲、有辛辣感。存放过程中，醇类和酸类慢慢发生酯化反应，生成带有香味的酯类物质，比如乙酸乙酯有果香、丁酸乙酯有菠萝香；同时一些刺激性的醛类会挥发或转化，酒体变得柔和醇厚。这个过程非常缓慢，要几个月到几年才明显，所以叫「陈酿」。但不是所有酒都适合久放：高度白酒、黄酒和部分葡萄酒能越陈越好，而啤酒、果酒这类保质期短的，放久了只会变质。酒陈香的前提是「会存」——密封、避光、阴凉，缺一不可。",s:"维基百科·白酒",u:"https://zh.wikipedia.org/wiki/白酒"},
+      {q:"为什么柠檬那么酸，却被说是「碱性食物」？",a:"因为食物的酸碱性不看入口味道，而看它消化代谢后的产物。柠檬里富含柠檬酸和钾、钙、镁等矿物质，尝起来很酸；但进入人体代谢后，柠檬酸被分解成二氧化碳和水排出体外，剩下的钾、钙、镁等离子呈碱性，反而让体液环境偏向碱性。所以营养学上说的「碱性食物」，指的是代谢后呈碱性的食物，跟口感完全两回事——醋、山楂、青梅也都是酸味碱性食物。这个「碱」指的是体内代谢环境，不是柠檬本身的酸碱度。所以别因为柠檬酸，就觉得它是酸性食物，身体的账，算的是代谢后的结果。",s:"科普中国",u:"https://www.kepuchina.cn/wiki/science/201903/t20190325_1029889.shtml"},
+      {q:"为什么盐放久了会结块？",a:"因为盐「爱喝水」。食盐主要成分是氯化钠，本身不太吸水，但食盐里常含有少量氯化镁、氯化钙等杂质，这些成分吸湿性特别强，会从空气里把水汽吸过来。盐粒表面一旦沾上水分，就会慢慢溶解、再结晶，颗粒之间互相粘连，结成硬块。空气越潮湿，结块越快，所以南方梅雨季的盐罐子最容易「板结」。防止的办法很简单：把盐罐盖严、放在干燥处；或者在罐底放几粒生米、一小块干海带，它们先帮盐把湿气吸走。已经结块的盐不用扔，敲碎照样能用，只是下次记得给它找个干爽的家。",s:"维基百科·食盐",u:"https://zh.wikipedia.org/wiki/食盐"},
+      {q:"为什么爆米花会「砰」地爆开？",a:"因为玉米粒里藏着「小锅炉」。爆米花用的玉米品种，果皮特别硬，内部胚乳含水量高。加热时，粒内的水分变成高温高压的水蒸气，被坚硬的果皮死死锁住，粒内压力越攒越高，一旦超过果皮的承受极限，「砰」一声炸开，淀粉瞬间膨胀定型，就成了蓬松的爆米花。所以爆米花是「压力锅」原理的零食版。放久了受潮的玉米粒爆不开，因为水分流失、压力不足；刚买的新鲜爆米花玉米粒，颗颗都是蓄势待发的「小炸弹」。",s:"维基百科·爆米花",u:"https://zh.wikipedia.org/wiki/爆米花"},
+      {q:"为什么冰淇淋会冒白烟？",a:"那不是冰淇淋在「冒冷气」，而是空气里的水蒸气被它「冻」出来了。冰淇淋温度远低于室温，周围的空气碰到冰凉的表面，温度骤降，空气中的水蒸气容纳不了那么多水分，立刻凝结成无数细小的水滴——和冬天哈气成雾、夏天冰可乐瓶外壁冒水珠是同一个道理，都叫「液化」。白烟其实是极小的小水珠组成的雾。冰淇淋越冰、空气越潮湿，白烟越明显。所以别担心冰淇淋「发烧」冒烟，它只是把空气中的水汽现了原形，看着仙气飘飘，其实是物理课现场。",s:"维基百科·液化",u:"https://zh.wikipedia.org/wiki/液化"},
+      {q:"为什么隔夜的米饭会变硬？",a:"这是淀粉在「回生」。米饭里的淀粉煮的时候吸水膨胀、糊化，变得软糯；放凉的过程中，淀粉分子慢慢重新排列、抱成团，把水分挤出来，这个过程叫「老化」或「回生」。于是隔夜饭变硬、变干，口感差很多。想让米饭回软，关键在加热时补回水分：炒饭前把饭用微波炉加热一分钟、或者加点水焖一下，淀粉重新吸水，就又软了。其实新鲜热饭放久了也会慢慢回生，只是时间问题。所以剩饭别怕，给它补点水，它还能再香一回。",s:"维基百科·淀粉回生",u:"https://zh.wikipedia.org/wiki/淀粉"}
+    ],
+    "文化":[
+      {q:"为什么中国古建筑的屋檐要向上翘起？",a:"飞檐翘角，是功能和审美一起「翘」出来的。古建筑屋顶坡度大，下雨时雨水要快速排走，屋檐挑出墙外，把雨水甩得远远的，保护墙基；而屋檐两端向上翘起，能让雨水顺着翘角呈抛物线飞出去，落得更远——这叫上翘排水。同时翘起的檐角让阳光更容易照进室内，采光更好；四个翘角还让沉重的大屋顶显得轻盈，像鸟翼舒展。故宫太和殿、江南园林的亭子，翘角各有风格：北方的雄浑，南方的灵秀。所以飞檐不只是好看，它是古人给排雨水和进阳光设计的双重方案。",s:"维基百科·飞檐",u:"https://zh.wikipedia.org/wiki/飞檐"},
+      {q:"为什么古人写字从右往左、竖着写？",a:"这是竹简「惯」出来的习惯。纸张普及之前，古人把字写在狭长的竹简、木牍上，再把竹简用绳子编起来、卷成卷。书写时从右往左写，写完一简放左边，正好符合人拿笔的顺手方向；展开阅读时，卷轴从左边打开，一行一行往右读，也顺理成章。竖排则是竹简天然的长条形决定的，字顺着简的方向写，一行写完换下一行。这个习惯延续了两千多年，连印章、牌匾、对联至今仍保留着从右往左、竖排的传统。直到近代引入西方书籍版式，横排左起才逐渐成为主流。今天看竖排书觉得新鲜，其实那才是汉字最古老的家。",s:"维基百科·汉字书写方向",u:"https://zh.wikipedia.org/wiki/汉字书写方向"},
+      {q:"为什么中国人见面爱问「吃了吗」？",a:"这是一句有年头的老问候。在漫长的农业社会里，粮食产量低、饥荒常见，「有没有饭吃」是普通人家每天最要紧的事。熟人见面问一句「吃了吗」，不是真关心你这顿饭吃什么，而是一种「我惦记着你」的问候——就像现在问「最近怎么样」。回答也讲究：说「吃了」表示日子过得还行，说「还没呢」，对方通常会接一句「那赶紧去吃」。物资匮乏的年代，这句话还隐含着「要不要来我家吃」的善意。如今粮食不再短缺，「吃了吗」渐渐变成见面随口的一句寒暄，但那份「关心你过得好不好」的暖意，一直没变。",s:"人民网·文化频道",u:"http://culture.people.com.cn/n/2014/0318/c172318-24665681.html"},
+      {q:"为什么别人给你倒茶，你要用手指敲桌子？",a:"这叫「叩指礼」，是茶桌上的致谢暗号。流传最广的说法和乾隆皇帝有关：传说乾隆微服私访时给大臣倒茶，大臣不能当众跪拜谢恩，怕暴露身份，就弯起手指在桌上轻叩几下，表示「叩首谢恩」——以指代跪。后来这礼数传开，成了茶桌上通用的谢礼：长辈给你倒茶，用五指并拢轻叩；平辈之间，用食指中指并拢轻叩；晚辈给你倒茶，单指叩两下就行。如今在广东的茶楼里，这个动作依然随处可见。茶桌上不用开口，几根手指就能把「谢谢」说得明明白白。",s:"南方+",u:"https://static.nfapp.southcn.com/content/201902/27/c1956595.html"},
+      {q:"为什么筷子总是一双两根？",a:"因为两根才「夹得起」，而且藏着「阴阳」。一根筷子只能戳、不能夹，两根配合，靠杠杆和摩擦力才能稳稳夹起食物，这是最根本的原因。古人还赋予了它哲学含义：一根为阳、一根为阴，一静一动、一主一辅，象征天地和谐、成双成对；筷子一头方一头圆，对应「天圆地方」，圆的一头入口，代表「民以食为天」。所以筷子从来不成单，结婚时送筷子寓意成双成对，餐桌上摆单根筷子则被视为不吉利。一双小小的筷子，既是吃饭的工具，也是中国人「好事成双」的人生观。",s:"中国新闻网",u:"http://m.chinanews.com/wap/detail/chs/zwsp/8684080.shtml"},
+      {q:"为什么婚礼上要贴红「囍」字？",a:"囍字是「喜」的加倍，取双喜临门、好事成双之意。传说与王安石有关：他赴京赶考途中娶亲，考场上又高中，双喜临门，便写下「囍」字贴在门上，从此流传开来（民间传说，代表美好寓意）。红色在中国文化里象征喜庆、吉祥，也用来驱邪，红囍字贴在门窗、新房、嫁妆上，既宣告喜事，也寄托对新人的祝福。婚礼上处处成双：双喜、双烛、双杯，图的就是「成双成对」。一张红囍字，是中国人最直白的祝福。",s:"维基百科·囍",u:"https://zh.wikipedia.org/wiki/囍"},
+      {q:"为什么祝寿要吃寿桃？",a:"寿桃寓意「长寿」，因为桃子在中国文化里是长寿的象征。相传西王母有蟠桃园，桃子三千年开花、三千年结果，吃了能延年益寿——神话让桃子和长寿挂上了钩；加上「桃」谐音「逃」，又添了逃灾避难的吉利意味。买不到鲜桃的季节，人们就用面粉蒸出桃形的馒头，顶部点红，就成了寿桃。给长辈祝寿送寿桃，是借桃的寓意说「祝您长寿健康」。所以寿桃吃的不是桃，是那份「岁岁平安、长命百岁」的心意。",s:"维基百科·寿桃",u:"https://zh.wikipedia.org/wiki/寿桃"},
+      {q:"为什么中秋要吃月饼？",a:"月饼和「团圆」绑在一起。传说最早与赏月有关：八月十五月圆，古人祭月、赏月，用圆形的饼敬月，圆饼象征满月，也象征团圆。到了明代，月饼逐渐成了中秋的固定节令食品，亲友互赠，寓意「人月两团圆」。加上中秋正值秋收之后，新粮新果上市，做饼的原料充足，吃月饼也成了庆祝丰收的仪式。今天月饼花样百出，但核心不变：圆圆的饼，提醒我们月圆人也要圆。所以中秋吃月饼，吃的是「团圆」两个字。",s:"维基百科·中秋节",u:"https://zh.wikipedia.org/wiki/中秋节"}
+    ],
+    "常识":[
+      {q:"为什么手机掉进水里要马上关机？",a:"因为「通电」比「泡水」更致命。手机泡水后，水里的杂质是导电的，电路板上的金属触点一旦被水连在一起，就会短路，电流乱窜，烧坏芯片；电池也可能因此异常放电甚至鼓包。关机、断开电源，等于先掐断电流，让水暂时「没电可导」，把损伤降到最小。正确的急救顺序是：立刻捞起、关机、别开机别充电，甩干表面水分，用纸巾吸干接口，再放进干燥剂或米缸里密封静置一两天，让内部水分慢慢蒸发。切忌用吹风机热风猛吹，高温会伤零件。手机怕的不是水，是「水加电」这个组合。",s:"科普中国",u:"https://cloud.kepuchina.cn/h5/detail?id=7453529420791320576"},
+      {q:"为什么微波炉里不能放金属？",a:"因为金属会「反射」微波，还可能打火。微波炉的原理是用微波让食物里的水分子高速振动、摩擦生热，而金属会像镜子一样把微波反射回去，食物热不到不说，反射的微波还可能在天线、勺尖这些尖锐处集中，产生电火花，严重时甚至烧毁磁控管、引发危险。所以金属容器、带金边银边的碗碟、锡纸，都不能进微波炉。但有一类例外：微波炉专用的金属烤架、带金属边的解冻盘，是厂家设计好的，微波炉能「容忍」。普通人家记住一条就够：除了专用配件，金属一律别进微波炉。",s:"科普中国",u:"https://cloud.kepuchina.cn/h5/detail?id=7453529420791320576"},
+      {q:"为什么刚煮好的鸡蛋特别难剥壳？",a:"因为蛋白和壳「黏得太紧」。鸡蛋壳内壁有一层薄膜，蛋白煮熟后膨胀，和这层膜紧紧贴在一起；而新鲜鸡蛋里空气少、蛋白浓，煮出来壳膜和蛋白几乎焊在一起，自然难剥。放了几天的鸡蛋，气室变大、蛋内空气增多，煮的时候蛋白收缩，壳和蛋白之间容易分离，反而好剥。想好剥壳有两个办法：煮蛋时水里加点盐或醋，帮助蛋白凝固收缩、壳膜分离；煮好立刻过凉水，热胀冷缩让壳和蛋白「松绑」。所以难剥的蛋不是煮得不好，是蛋太新鲜了——新鲜是优点，剥壳是代价。",s:"科普中国",u:"https://cloud.kepuchina.cn/h5/detail?id=7453529420791320576"},
+      {q:"为什么洗完澡，镜子会起一层雾？",a:"因为热空气中的水蒸气「撞了冷墙」。洗澡时热水产生大量热的水蒸气，镜子温度低（尤其是冬天），热空气碰到凉镜面，温度骤降，水蒸气容纳不了那么多水分，就凝结成细小的水珠附在镜面上——这就是「液化」，跟夏天冰可乐瓶外壁冒水珠是同一个道理。想让镜子不起雾，办法都是让镜面别那么凉或别沾水：抹一层肥皂或洗洁精，干了之后会形成一层薄膜，水汽挂不住；或者用吹风机把镜面吹热，水蒸气就不容易凝结了。雾气不是镜子的错，是冷热相遇时，水在镜面上现了原形。",s:"科普中国",u:"https://cloud.kepuchina.cn/h5/detail?id=7453529420791320576"},
+      {q:"为什么空调遥控器要对准空调才灵？",a:"因为遥控器用的是「红外线」，而红外线像手电筒的光一样，是直线传播、有方向性的。遥控器前端的小灯珠发出红外信号，只有信号打到空调的接收窗口上，空调才能「听懂」；中间隔着障碍物、角度偏了，信号就传不到。有些遥控器对准天花板或墙壁按，也能开空调，那是红外线被墙面漫反射后碰巧进了接收窗，所以偶尔「盲按」也灵，但距离一远、障碍一多就不行。现在的智能空调支持 Wi-Fi 和蓝牙，手机 App 隔着墙也能开关，但遥控器家族的主力，依然是那束看不见的红外光。",s:"科普中国",u:"https://cloud.kepuchina.cn/h5/detail?id=7453529420791320576"},
+      {q:"为什么白纸放久了会发黄？",a:"因为纸里藏着「变黄的种子」。纸张的主要原料是木浆，含有木质素——它本身是淡黄色的，造纸时会尽量漂白，但很难完全除净。木质素见光、接触氧气后会被氧化，颜色逐渐变深，纸也就慢慢发黄。报纸变黄最快，因为新闻纸用机械浆、木质素含量高；打印纸、书本纸经过化学处理，木质素少，黄得慢一些。想减缓发黄，把纸避光、防潮保存就行。所以老书泛黄不是纸「变老」，是木质素在悄悄氧化——书页里藏着时间的颜色。",s:"维基百科·木质素",u:"https://zh.wikipedia.org/wiki/木质素"},
+      {q:"为什么超市结账台旁边总摆着口香糖？",a:"这是经典的「冲动消费」设计。结账排队时，顾客已经买完计划内的东西，正处于「马上要付钱」的心理放松期，顺手再拿一件小东西的阻力最小；口香糖、巧克力、小糖果单价低、不用挑、结账快，放购物篮不心疼。它们体积小，正好塞在收银台附近，排队时顺手就拿，结账时多花几块钱也不显眼。商家把这类商品叫「收银台冲动品」，靠的就是你排队那几十秒。所以每次结账多出的那盒口香糖，不是你的错，是货架设计的功劳。",s:"维基百科·冲动购买",u:"https://zh.wikipedia.org/wiki/冲动购买"},
+      {q:"为什么新买的衣服总有一股味道？",a:"那股味道主要是「纺织助剂」和包装的功劳。新衣服在生产过程中会用不少化学助剂：防皱的树脂、防缩的整理剂、染色的固色剂，还有仓库运输时的防霉剂，它们残留在面料上，就散发出特有的气味。此外新衣服的塑料包装袋本身也有味道，刚拆开时气味更明显。这些助剂大多在安全标准允许的范围内，但对皮肤敏感的人可能有点刺痒。建议新衣服先洗一遍再穿：清水或加一点盐浸泡，能带走大部分残留助剂和浮色，晒干后味道基本就没了。",s:"维基百科·纺织品",u:"https://zh.wikipedia.org/wiki/纺织品"}
+    ]
+  };
+
+  var CATS = ["科学","历史","自然","动物","人体","食物","文化","常识"];
+  var TOTAL = 0;
+  for (var c=0;c<CATS.length;c++){ TOTAL += BANK[CATS[c]].length; }
+
+  var TODAY = "2026-09-29";
+  var VER = 3;
+  var KEY = "lkc_" + VER + "_seen_" + TODAY;
+  var FAV_KEY = "lkc_" + VER + "_fav";
+
+  var mode = "random";   // random=随机一批 | cat=单分类 | fav=我的收藏
+  var currentCat = null;
+
+  /* ===== 已看记录（按日期，跨天自动重置） ===== */
+  function loadSeen(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      if(raw){ var o = JSON.parse(raw); if(o && typeof o==="object"){ return o; } }
+    }catch(e){}
+    return {};
+  }
+  function saveSeen(o){
+    try{ localStorage.setItem(KEY, JSON.stringify(o)); }catch(e){}
+  }
+
+  /* ===== 收藏记录（跨天保留） ===== */
+  function loadFav(){
+    try{
+      var raw = localStorage.getItem(FAV_KEY);
+      if(raw){ var o = JSON.parse(raw); if(o && o instanceof Array){ return o; } }
+    }catch(e){}
+    return [];
+  }
+  function saveFav(o){
+    try{ localStorage.setItem(FAV_KEY, JSON.stringify(o)); }catch(e){}
+  }
+  function isFav(cat, idx){
+    var fav = loadFav();
+    for(var i=0;i<fav.length;i++){
+      if(fav[i].cat===cat && fav[i].idx===idx){ return true; }
+    }
+    return false;
+  }
+
+  /* ===== 工具 ===== */
+  function randInt(n){ return Math.floor(Math.random()*n); }
+  function toast(msg){
+    var el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ el.classList.remove("show"); }, 1800);
+  }
+  function escapeHtml(s){
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  /* ===== 抽题：每分类 1 条，不重复 ===== */
+  function draw(){
+    var seen = loadSeen();
+    var picks = [];   // {cat, item, index}
+    var reset = false;
+    for(var i=0;i<CATS.length;i++){
+      var cat = CATS[i];
+      var arr = BANK[cat];
+      var seenList = seen[cat] || [];
+      var avail = [];
+      for(var j=0;j<arr.length;j++){
+        if(seenList.indexOf(j) === -1){ avail.push(j); }
+      }
+      if(avail.length === 0){
+        seenList = [];
+        avail = [];
+        for(var k=0;k<arr.length;k++){ avail.push(k); }
+        reset = true;
+      }
+      var idx = avail[randInt(avail.length)];
+      if(seenList.indexOf(idx) === -1){ seenList.push(idx); }
+      seen[cat] = seenList;
+      picks.push({cat:cat, item:arr[idx], index:idx});
+    }
+    saveSeen(seen);
+    return {picks:picks, reset:reset, seen:seen};
+  }
+
+  function seenTotal(seen){
+    var n = 0;
+    for(var c=0;c<CATS.length;c++){ n += (seen[CATS[c]]||[]).length; }
+    return Math.min(n, TOTAL);
+  }
+
+  /* ===== 渲染 ===== */
+  function renderNav(){
+    var nav = document.getElementById("nav");
+    var html = "";
+    for(var i=0;i<CATS.length;i++){
+      var c = CATS[i];
+      html += '<a href="#cat-'+c+'" style="--c:'+colorOf(c)+'"'+(mode==="cat" && currentCat===c?' class="active"':'')+' onclick="window.goCat(\''+c+'\');return false;">'+c+'</a>';
+    }
+    nav.innerHTML = html;
+  }
+
+  function updateToolbar(){
+    var ab = document.getElementById("allBtn");
+    var fb = document.getElementById("favBtn");
+    ab.classList.toggle("active", mode === "random");
+    fb.classList.toggle("active", mode === "fav");
+  }
+
+  function colorOf(cat){
+    var map = {"科学":"#17786E","历史":"#9A6B22","自然":"#5C7F31","动物":"#C05A2B","人体":"#C13F5B","食物":"#C9841B","文化":"#2E6DA3","常识":"#6B7280"};
+    return map[cat] || "#17786E";
+  }
+
+  function render(result){
+    var list = document.getElementById("list");
+    var html = "";
+    for(var i=0;i<result.picks.length;i++){
+      var p = result.picks[i];
+      var col = colorOf(p.cat);
+      var favOn = isFav(p.cat, p.index);
+      html +=
+        '<article class="card" id="card-'+mode+'-'+(i+1)+'" style="--c:'+col+'">'+
+          '<div class="card-head" role="button" tabindex="0" aria-expanded="false">'+
+            '<span class="num">0'+(i+1)+'</span>'+
+            '<span class="tag">'+escapeHtml(p.cat)+'</span>'+
+            '<h2 class="q">'+escapeHtml(p.item.q)+'</h2>'+
+            '<span class="chev">›</span>'+
+          '</div>'+
+          '<div class="card-body">'+
+            '<div class="card-body-inner">'+
+              '<p class="a">'+escapeHtml(p.item.a)+'</p>'+
+              '<div class="meta">'+
+                '<a class="src" href="'+escapeHtml(p.item.u)+'" target="_blank" rel="noopener">来源：'+escapeHtml(p.item.s)+' ↗</a>'+
+                '<div class="meta-btns">'+
+                  '<button class="copy" type="button">复制</button>'+
+                  '<button class="fav'+(favOn?' on':'')+'" type="button" data-cat="'+p.cat+'" data-idx="'+p.index+'" onclick="window.toggleFav(\''+p.cat+'\','+p.index+');">'+(favOn?'已收藏':'收藏')+'</button>'+
+                '</div>'+
+              '</div>'+
+            '</div>'+
+          '</div>'+
+        '</article>';
+    }
+    list.innerHTML = html;
+    document.getElementById("favbar").hidden = true;
+    updateCount(result.seen);
+    var eb = document.getElementById("expandBtn");
+    if(eb){ eb.textContent = "展开"; }
+    if(result.reset){
+      toast("这一批已经看完啦，重新洗牌再来一轮");
+    }
+  }
+
+  /* ===== 单分类视图：显示该分类全部题目（可选打乱顺序） ===== */
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){
+      var j = randInt(i+1);
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function renderCat(cat, shuffleFlag){
+    mode = "cat";
+    currentCat = cat;
+    var arr = BANK[cat];
+    var order = [];
+    for(var i=0;i<arr.length;i++){ order.push(i); }
+    if(shuffleFlag){ order = shuffle(order); }
+    var picks = [];
+    for(var j=0;j<order.length;j++){
+      var idx = order[j];
+      picks.push({cat:cat, item:arr[idx], index:idx});
+    }
+    render({picks:picks, reset:false, seen:loadSeen()});
+    document.getElementById("count").textContent = "「"+cat+"」分类 · 共 " + arr.length + " 条";
+    renderNav();
+    updateToolbar();
+  }
+
+  /* ===== 我的收藏视图 ===== */
+  function renderFav(){
+    mode = "fav";
+    currentCat = null;
+    var fav = loadFav();
+    var picks = [];
+    for(var i=0;i<fav.length;i++){
+      var f = fav[i];
+      var arr = BANK[f.cat];
+      if(arr && arr[f.idx]){
+        picks.push({cat:f.cat, item:arr[f.idx], index:f.idx});
+      }
+    }
+    if(picks.length === 0){
+      document.getElementById("list").innerHTML = '<div class="empty">还没有收藏的冷知识。打开任意卡片，点「收藏」就能收进这里。</div>';
+      document.getElementById("count").textContent = "我的收藏 · 0 条";
+      document.getElementById("favbar").hidden = false;
+      document.getElementById("favbarInfo").textContent = "共 0 条";
+      var eb = document.getElementById("expandBtn");
+      if(eb){ eb.textContent = "展开"; }
+      renderNav();
+      updateToolbar();
+      return;
+    }
+    render({picks:picks, reset:false, seen:loadSeen()});
+    document.getElementById("count").textContent = "我的收藏 · " + picks.length + " 条";
+    document.getElementById("favbar").hidden = false;
+    document.getElementById("favbarInfo").textContent = "共 " + picks.length + " 条";
+    renderNav();
+    updateToolbar();
+  }
+
+  function updateCount(seen){
+    var n = seenTotal(seen);
+    document.getElementById("count").textContent = "今天已看 " + n + " / " + TOTAL + " 条";
+  }
+
+  function goAll(){
+    mode = "random";
+    currentCat = null;
+    render(draw());
+    renderNav();
+    updateToolbar();
+  }
+
+  function refresh(){
+    var btn = document.getElementById("refreshBtn");
+    btn.classList.add("spin");
+    setTimeout(function(){ btn.classList.remove("spin"); }, 480);
+    if(mode === "cat"){
+      renderCat(currentCat, true);
+      return;
+    }
+    goAll();
+  }
+
+  /* ===== 交互：全部 / 展开收起 / 我的 / 收藏 ===== */
+  document.getElementById("allBtn").addEventListener("click", goAll);
+  document.getElementById("favBtn").addEventListener("click", renderFav);
+
+  document.getElementById("expandBtn").addEventListener("click", function(){
+    var cards = document.querySelectorAll(".card");
+    if(cards.length === 0){ return; }
+    var allOpen = true;
+    for(var i=0;i<cards.length;i++){
+      if(!cards[i].classList.contains("open")){ allOpen = false; break; }
+    }
+    for(var j=0;j<cards.length;j++){
+      var open = !allOpen;
+      cards[j].classList.toggle("open", open);
+      var head = cards[j].querySelector(".card-head");
+      if(head){ head.setAttribute("aria-expanded", open ? "true" : "false"); }
+    }
+    this.textContent = allOpen ? "展开" : "收起";
+  });
+
+  window.goCat = function(cat){ renderCat(cat); };
+
+  window.toggleFav = function(cat, idx){
+    var fav = loadFav();
+    var pos = -1;
+    for(var i=0;i<fav.length;i++){
+      if(fav[i].cat===cat && fav[i].idx===idx){ pos = i; break; }
+    }
+    if(pos >= 0){
+      fav.splice(pos, 1);
+      toast("已取消收藏");
+    }else{
+      fav.push({cat:cat, idx:idx});
+      toast("已收藏，去「我的」里找它");
+    }
+    saveFav(fav);
+    if(mode === "fav"){
+      renderFav();
+    }else{
+      var btns = document.querySelectorAll('.fav[data-cat="'+cat+'"][data-idx="'+idx+'"]');
+      for(var j=0;j<btns.length;j++){
+        btns[j].classList.toggle("on", pos < 0);
+        btns[j].textContent = pos < 0 ? "已收藏" : "收藏";
+      }
+    }
+  };
+
+  document.addEventListener("click", function(e){
+    var head = e.target.closest ? e.target.closest(".card-head") : null;
+    if(head){
+      var card = head.closest(".card");
+      var open = card.classList.toggle("open");
+      head.setAttribute("aria-expanded", open ? "true" : "false");
+      return;
+    }
+    var btn = e.target.closest ? e.target.closest(".copy") : null;
+    if(btn){
+      var card = btn.closest(".card");
+      var q = card.querySelector(".q").textContent;
+      var a = card.querySelector(".a").textContent;
+      var text = q + "\n\n" + a;
+      copyText(text).then(function(){ toast("已复制，去分享吧"); })
+        .catch(function(){ toast("复制失败，请手动长按选择"); });
+    }
+  });
+
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Enter" || e.key === " "){
+      var t = e.target;
+      if(t && t.classList && t.classList.contains("card-head")){
+        e.preventDefault();
+        var card = t.closest(".card");
+        var open = card.classList.toggle("open");
+        t.setAttribute("aria-expanded", open ? "true" : "false");
+      }
+    }
+  });
+
+  function copyText(text){
+    return new Promise(function(resolve, reject){
+      if(navigator.clipboard && window.isSecureContext && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(resolve, function(){
+          legacyCopy(text, resolve, reject);
+        });
+        return;
+      }
+      legacyCopy(text, resolve, reject);
+    });
+  }
+
+  function legacyCopy(text, resolve, reject){
+    var ta = null;
+    try{
+      ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.top = "0";
+      ta.style.left = "0";
+      ta.style.width = "2em";
+      ta.style.height = "2em";
+      ta.style.border = "0";
+      ta.style.padding = "0";
+      ta.style.margin = "0";
+      ta.style.boxShadow = "none";
+      ta.style.outline = "none";
+      ta.style.background = "transparent";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      var ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      ta = null;
+      if(ok){ resolve(); }
+      else{ reject(new Error("execCommand copy failed")); }
+    }catch(err){
+      if(ta && ta.parentNode){ ta.parentNode.removeChild(ta); }
+      reject(err);
+    }
+  }
+
+  /* ===== 我的收藏：全部复制 ===== */
+  window.copyAllFav = function(){
+    var fav = loadFav();
+    var parts = [];
+    for(var i=0;i<fav.length;i++){
+      var f = fav[i];
+      var arr = BANK[f.cat];
+      if(arr && arr[f.idx]){
+        parts.push("【" + f.cat + "】" + arr[f.idx].q + "\n\n" + arr[f.idx].a);
+      }
+    }
+    if(parts.length === 0){
+      toast("还没有可复制的收藏");
+      return;
+    }
+    copyText(parts.join("\n\n————\n\n")).then(function(){
+      toast("已复制全部收藏");
+    }).catch(function(){
+      toast("复制失败，请手动长按选择");
+    });
+  };
+
+  /* ===== 下拉刷新（触摸） ===== */
+  (function(){
+    var tip = document.getElementById("pullTip");
+    var startY = null, pulling = 0, released = false;
+    document.addEventListener("touchstart", function(e){
+      if(window.scrollY <= 0){
+        startY = e.touches[0].clientY;
+        pulling = 0;
+        released = false;
+      }
+    }, {passive:true});
+    document.addEventListener("touchmove", function(e){
+      if(startY === null){ return; }
+      var dy = e.touches[0].clientY - startY;
+      if(dy > 0 && window.scrollY <= 0){
+        pulling = Math.min(dy, 110);
+        released = true;
+        tip.textContent = pulling > 70 ? "松开再好奇" : "↓ 下拉再好奇";
+        tip.classList.add("show");
+        e.preventDefault();
+      }
+    }, {passive:false});
+    document.addEventListener("touchend", function(){
+      if(released){
+        tip.classList.remove("show");
+        if(pulling > 70){ refresh(); }
+        else{ toast("再往下拉一点就能再好奇"); }
+      }
+      startY = null; pulling = 0; released = false;
+    });
+  })();
+
+  /* ===== 启动 ===== */
+  document.getElementById("refreshBtn").addEventListener("click", refresh);
+  renderNav();
+  updateToolbar();
+  render(draw());
+})();
+</script>
+</body>
+</html>
