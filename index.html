@@ -179,6 +179,7 @@
     <p class="status" id="count">正在加载题库…</p>
     <p>点分类只看单领域，点「我的」看收藏，点「再好奇」随时换新题。</p>
     <p>每条内容均经权威科普渠道核验后改写，来源见卡片内链接。</p>
+    <p class="update">上次更新 <span id="lastUpdate">—</span> · 下次更新 <span id="nextUpdate">—</span>（每周六早上自动发布）</p>
   </footer>
 </main>
 
@@ -932,7 +933,22 @@
   var TOTAL = 0;
   for (var c=0;c<CATS.length;c++){ TOTAL += BANK[CATS[c]].length; }
 
-  var TODAY = "2026-09-29";
+  /* ===== 日期与更新信息（自动计算，每周六定时发布时改写 LAST_UPDATE） ===== */
+  var WEEK_CN = ["日","一","二","三","四","五","六"];
+  var NOW = new Date();
+  function two(n){ return (n<10?"0":"")+n; }
+  function fmtKey(d){ return d.getFullYear()+"-"+two(d.getMonth()+1)+"-"+two(d.getDate()); }
+  function fmtCn(d){ return d.getFullYear()+" 年 "+(d.getMonth()+1)+" 月 "+d.getDate()+" 日 · 星期"+WEEK_CN[d.getDay()]; }
+  var TODAY = fmtKey(NOW);
+  var LAST_UPDATE = "2026-09-30";   /* 最近一次内容更新时间（每周六定时发布时改写为当天） */
+  function nextSaturday(from){
+    var d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+    var diff = (6 - d.getDay() + 7) % 7;
+    if(diff === 0){ diff = 7; }
+    d.setDate(d.getDate() + diff);
+    return d;
+  }
+  var NEXT_UPDATE = fmtKey(nextSaturday(NOW));
   var VER = 3;
   var KEY = "lkc_" + VER + "_seen_" + TODAY;
   var FAV_KEY = "lkc_" + VER + "_fav";
@@ -1345,6 +1361,10 @@
   renderNav();
   updateToolbar();
   render(draw());
+  /* 填充动态日期与更新信息 */
+  var _de = document.querySelector(".date"); if(_de){ _de.textContent = fmtCn(NOW); }
+  var _lu = document.getElementById("lastUpdate"); if(_lu){ _lu.textContent = LAST_UPDATE; }
+  var _nu = document.getElementById("nextUpdate"); if(_nu){ _nu.textContent = NEXT_UPDATE + "（周六早上）"; }
 })();
 </script>
 </body>
